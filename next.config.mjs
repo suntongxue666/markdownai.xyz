@@ -1,18 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      if (!config.optimization.splitChunks) {
-        config.optimization.splitChunks = { cacheGroups: {} };
-      }
-      config.optimization.splitChunks.cacheGroups.vendor = {
-        test: /[\\/]node_modules[\\/]/,
-        name: 'vendor',
-        chunks: 'all',
-      };
-    }
-    return config;
-  },
+  // 这是解决问题的关键：告诉 Next.js 不要使用默认的 SWC 压缩器
+  swcMinify: false, 
 };
 
 export default nextConfig;
