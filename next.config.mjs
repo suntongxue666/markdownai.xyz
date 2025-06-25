@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 这是解决问题的关键：告诉 Next.js 不要使用默认的 SWC 压缩器
-  swcMinify: false, 
+  // 告诉 Next.js 我们要生成一个纯静态网站
+  output: 'export', 
 };
 
 export default nextConfig;
