@@ -1,18 +1,23 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    // --- 核心改动 ---
     "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "bundler", // 改为 "bundler"
+    "target": "esnext",             // 从 "es5" 改为 "esnext"，允许使用最新JS特性
+    "jsx": "preserve",              // 这个是正确的，保持不变
+
+    // --- 其他最佳实践配置 ---
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
+    "strict": true,                 // 建议保持 true
+    "noEmit": true,                 // Next.js 会处理编译，所以这里是 true
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
     "incremental": true,
+    
+    // --- 插件和路径别名 ---
     "plugins": [
       {
         "name": "next"
@@ -22,6 +27,13 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
