@@ -1,8 +1,8 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function POST() {
-  console.log('Received POST request to /api/convert'); // Add logging
-  return NextResponse.json({ message: 'POST request received successfully!' }, { status: 200 });
+export async function POST(request: Request) {
+  console.log('--- Simplified POST request received ---');
+  return NextResponse.json({ message: 'Simplified POST API is working!' }, { status: 200 });
 }
 
 export async function GET() {
