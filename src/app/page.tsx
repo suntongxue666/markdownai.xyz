@@ -32,7 +32,7 @@ const SUPPORTED_FILES = [
   { ext: "JSON", desc: "JavaScript Object Notation" },
 ];
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 5MB
 
 interface ConversionState {
   status: 'idle' | 'uploading' | 'converting' | 'success' | 'error';
@@ -226,10 +226,10 @@ export default function HomePage() {
                     </h3>
 
                     <p className="text-gray-600 mb-6">
-                      Support for PDF, Word, PowerPoint, Excel, and more. Max size: 5MB
+                      Support for PDF, Word, PowerPoint, Excel, and more. Max size: 10MB
                     </p>
 
-                    <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                    <Button size="lg" className="bg-blue-600 hover:bg-blue-700 w-64">
                       <FileIcon className="w-5 h-5 mr-2" />
                       Select File
                     </Button>

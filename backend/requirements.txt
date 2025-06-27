@@ -1,0 +1,5 @@
+    # backend/requirements.txt
+    fastapi==0.111.0
+    uvicorn[standard]==0.30.1
+    python-multipart==0.0.9 # 用于处理文件上传
+    markitdown[all]==0.1.2 # 安装 markitdown 及其所有可选依赖
