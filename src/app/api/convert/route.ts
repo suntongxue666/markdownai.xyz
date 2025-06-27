@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+export const runtime = 'edge';
+
 // 从环境变量获取 Python 后端 URL
 const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
 
