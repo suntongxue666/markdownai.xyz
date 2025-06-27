@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  FileText,
   Upload,
   Download,
   CheckCircle,
@@ -52,7 +51,7 @@ export default function HomePage() {
     if (rejectedFiles.length > 0) {
       const rejection = rejectedFiles[0];
       if (rejection.errors[0]?.code === 'file-too-large') {
-        toast.error('File size must be less than 5MB');
+        toast.error('File size must be less than 10MB');
       } else {
         toast.error('Please select a supported file format');
       }
@@ -157,7 +156,11 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <FileText className="w-5 h-5 text-white" />
+                <img
+                  src="https://ciwjjfcuhubjydajazkk.supabase.co/storage/v1/object/public/webstie-icon//MarkdownAI%20Fav%20icon.png"
+                  alt="MarkdownAI Logo"
+                  className="w-5 h-5"
+                />
               </div>
               <span className="text-xl font-semibold text-gray-900">MarkdownAI</span>
             </div>
@@ -377,7 +380,7 @@ export default function HomePage() {
 
               <div className="text-center">
                 <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <FileText className="w-6 h-6 text-purple-600" />
+                  <FileIcon className="w-6 h-6 text-purple-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Multiple Formats</h3>
                 <p className="text-gray-600">

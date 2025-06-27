@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/sonner" // 1. 导入 Toaster 组件
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MarkDownAI Converter: Free Online Tool for PDF, Word, HTML, & More to Markdown",
+  title: "MarkDownAI Converter: PDF,Word,HTML,PPT,EXCEL,CSV,txt,epub to Markdown Converter Free",
   description: "MarkDownAI is a professional online document converter. Easily transform PDF, Word, HTML, PPT, Excel, CSV, TXT, and ePub files into high-quality Markdown format for free. Simple, accurate, and efficient conversions.",
   keywords: "markdown converter, online markdown converter, PDF to Markdown, Word to Markdown, HTML to Markdown, PPT to Markdown, Excel to Markdown, CSV to Markdown, TXT to Markdown, ePub to Markdown, free document converter, file format converter, convert to markdown, markdown online, document to markdown",
 };
