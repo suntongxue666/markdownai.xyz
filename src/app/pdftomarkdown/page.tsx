@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone, FileRejection } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
+import Link from 'next/link';
 import {
   Upload,
   Download,
@@ -17,22 +18,22 @@ import {
   Sparkles,
   FileType,
   Zap,
-  Copy
+  Copy,
+  FileText,
+  User,
+  Globe,
+  Calendar,
+  Laptop,
+  HelpCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
+// 定义 PDF to Markdown 页面支持的文件类型
 const SUPPORTED_FILES = [
   { ext: "PDF", desc: "Portable Document Format" },
-  { ext: "DOCX", desc: "Microsoft Word Document" },
-  { ext: "PPTX", desc: "Microsoft PowerPoint" },
-  { ext: "XLSX", desc: "Microsoft Excel" },
-  { ext: "TXT", desc: "Plain Text File" },
-  { ext: "HTML", desc: "Web Page" },
-  { ext: "CSV", desc: "Comma Separated Values" },
-  { ext: "JSON", desc: "JavaScript Object Notation" },
 ];
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 interface ConversionState {
   status: 'idle' | 'uploading' | 'converting' | 'success' | 'error';
@@ -42,11 +43,101 @@ interface ConversionState {
   error?: string;
 }
 
-export default function HomePage() {
+// 定义最近转换案例的数据结构
+interface ConversionLog {
+  id: number;
+  date: string;
+  location: string; // XX国家XX城市
+  browser: string; // XX浏览器
+  message: string;
+  avatarSeed: string; // To generate unique avatars
+}
+
+// 模拟生成最近转换案例数据
+const generateMockConversionLogs = (count: number): ConversionLog[] => {
+  const logs: ConversionLog[] = [];
+  const countryCityMap: { [key: string]: string[] } = {
+    'USA': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Miami'],
+    'China': ['Shanghai', 'Beijing', 'Guangzhou', 'Shenzhen', 'Chengdu'],
+    'India': ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad'],
+    'Germany': ['Berlin', 'Munich', 'Hamburg', 'Cologne', 'Frankfurt'],
+    'Brazil': ['Rio de Janeiro', 'Sao Paulo', 'Brasília', 'Salvador', 'Fortaleza'],
+    'UK': ['London', 'Manchester', 'Birmingham', 'Glasgow', 'Liverpool'],
+    'Canada': ['Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Ottawa'],
+    'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide'],
+    'France': ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice'],
+    'Japan': ['Tokyo', 'Osaka', 'Kyoto', 'Nagoya', 'Sapporo'],
+  };
+  const countries = Object.keys(countryCityMap);
+  const browsers = ['Chrome', 'Firefox', 'Edge', 'Safari', 'Brave'];
+  const messages = [
+    "Transform PDF to markdown by www.markdownai.xyz. It's so great make pdf to markdown converter.",
+    "Converted a complex PDF document quickly!",
+    "Amazing tool for converting PDF to Markdown. Highly recommended!",
+    "Finally found a reliable PDF to Markdown converter.",
+    "Seamless conversion experience.",
+    "Very useful for my workflow, turning PDFs into editable Markdown.",
+    "Efficient and accurate conversion from PDF to Markdown.",
+    "Perfect for extracting text from PDF for documentation.",
+    "The best online PDF to Markdown tool I've used!",
+    "Quick and clean results every time.",
+    "Saved me hours of manual retyping from PDF.",
+    "A fantastic solution for developers working with docs.",
+    "Loved how easy it was to convert my PDF reports.",
+    "Fast and reliable, exceeded my expectations for PDF conversion.",
+    "The output Markdown is clean and easy to work with."
+  ];
+
+  // Function to get a date N days ago
+  const getDateNDaysAgo = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  // Ensure first few entries have recent dates
+  const recentDaysCount = 4; // Today + last 3 days
+  for (let i = 0; i < recentDaysCount; i++) {
+    const randomCountry = countries[Math.floor(Math.random() * countries.length)];
+    const randomCity = countryCityMap[randomCountry][Math.floor(Math.random() * countryCityMap[randomCountry].length)];
+    logs.push({
+      id: i + 1,
+      date: getDateNDaysAgo(i),
+      location: `${randomCountry}, ${randomCity}`,
+      browser: browsers[Math.floor(Math.random() * browsers.length)],
+      message: messages[Math.floor(Math.random() * messages.length)],
+      avatarSeed: `seed-${Math.random().toString(36).substring(7)}`, // Use a random string for avatar seed
+    });
+  }
+
+  // Generate remaining entries with random older dates
+  for (let i = recentDaysCount; i < count; i++) {
+    const randomCountry = countries[Math.floor(Math.random() * countries.length)];
+    const randomCity = countryCityMap[randomCountry][Math.floor(Math.random() * countryCityMap[randomCountry].length)];
+    logs.push({
+      id: i + 1,
+      date: getDateNDaysAgo(Math.floor(Math.random() * 360) + 4), // 4 days ago up to a year ago
+      location: `${randomCountry}, ${randomCity}`,
+      browser: browsers[Math.floor(Math.random() * browsers.length)],
+      message: messages[Math.floor(Math.random() * messages.length)],
+      avatarSeed: `seed-${Math.random().toString(36).substring(7)}`, // Use a random string for avatar seed
+    });
+  }
+
+  return logs;
+};
+
+export default function PdfToMarkdownPage() {
   const [conversion, setConversion] = useState<ConversionState>({
     status: 'idle',
     progress: 0
   });
+  const [recentConversions, setRecentConversions] = useState<ConversionLog[]>([]);
+
+  // 在组件加载时生成模拟数据
+  useEffect(() => {
+    setRecentConversions(generateMockConversionLogs(15)); // Generate 15 mock logs
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     if (rejectedFiles.length > 0) {
@@ -69,14 +160,7 @@ export default function HomePage() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'application/pdf': ['.pdf'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'text/plain': ['.txt'],
-      'text/html': ['.html'],
-      'text/csv': ['.csv'],
-      'application/json': ['.json'],
+      'application/pdf': ['.pdf'], // <-- 仅接受 PDF
     },
     maxSize: MAX_FILE_SIZE,
     multiple: false
@@ -165,16 +249,15 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col">
       {/* Main Content */}
-      <main className="flex-1 px-4 pb-12">
         <div className="max-w-4xl mx-auto">
-          {/* Hero Section */}
+          {/* Hero Section - 调整图标和文字 */}
           <div className="text-center mb-12">
             <div className="flex items-center justify-center mb-6">
               <div className="relative">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center apple-shadow-lg">
-                  <Sparkles className="w-8 h-8 text-white" />
+                  <FileText className="w-8 h-8 text-white" />
                 </div>
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                   <Zap className="w-3 h-3 text-white" />
@@ -183,30 +266,18 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 text-balance">
-              Convert Documents to{" "}
+              Convert PDF to{" "}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 Markdown
               </span>
             </h1>
 
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto text-balance">
-              Transform your PDF, Word, PowerPoint, and other documents into clean,
-              structured Markdown format. Perfect for developers, writers, and content creators.
+              How to convert pdf to markdown, Select a file to this PDF convert markdown,After 15-90 secs, pdf to markdown converter will complete it.
             </p>
-
-            <div className="flex flex-wrap justify-center gap-2 mb-8">
-              {SUPPORTED_FILES.slice(0, 4).map((file) => (
-                <Badge key={file.ext} variant="outline" className="frosted-glass">
-                  {file.ext}
-                </Badge>
-              ))}
-              <Badge variant="outline" className="frosted-glass">
-                +{SUPPORTED_FILES.length - 4} more
-              </Badge>
-            </div>
           </div>
 
-          {/* Conversion Interface */}
+          {/* Conversion Interface - 文件上传区域及后续状态保持不变 */}
           {conversion.status === 'idle' && (
             <Card className="frosted-glass border-2 border-dashed border-blue-200 hover:border-blue-300 transition-colors">
               <CardContent className="p-12">
@@ -222,16 +293,16 @@ export default function HomePage() {
                     </div>
 
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      {isDragActive ? 'Drop your file here' : 'Choose a file or drag it here'}
+                      {isDragActive ? 'Drop your PDF file here' : 'Choose a PDF file or drag it here'}
                     </h3>
 
                     <p className="text-gray-600 mb-6">
-                      Support for PDF, Word, PowerPoint, Excel, and more. Max size: 10MB
+                      Only PDF files are supported for this converter. Max size: 10MB
                     </p>
 
                     <Button size="lg" className="bg-blue-600 hover:bg-blue-700 w-64">
                       <FileIcon className="w-5 h-5 mr-2" />
-                      Select File
+                      Select PDF File
                     </Button>
                   </div>
                 </div>
@@ -249,7 +320,7 @@ export default function HomePage() {
                   </div>
 
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {conversion.status === 'uploading' ? 'Uploading file...' : 'Converting to Markdown...'}
+                    {conversion.status === 'uploading' ? 'Uploading PDF file...' : 'Converting PDF to Markdown...'}
                   </h3>
 
                   <p className="text-gray-600 mb-6">
@@ -279,11 +350,11 @@ export default function HomePage() {
                     </div>
 
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      Conversion Complete!
+                      PDF Conversion Complete!
                     </h3>
 
                     <p className="text-gray-600 mb-6">
-                      Your document has been successfully converted to Markdown
+                      Your PDF document has been successfully converted to Markdown
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -293,7 +364,7 @@ export default function HomePage() {
                       </Button>
 
                       <Button onClick={resetConversion} variant="outline" size="lg">
-                        Convert Another File
+                        Convert Another PDF
                       </Button>
                     </div>
                   </div>
@@ -343,11 +414,11 @@ export default function HomePage() {
                   </div>
 
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Conversion Failed
+                    PDF Conversion Failed
                   </h3>
 
                   <p className="text-gray-600 mb-6">
-                    {conversion.error || 'An error occurred while converting your file'}
+                    {conversion.error || 'An error occurred while converting your PDF file'}
                   </p>
 
                   <Button onClick={resetConversion} size="lg">
@@ -358,10 +429,14 @@ export default function HomePage() {
             </Card>
           )}
 
-          {/* Features Section */}
+          {/* Why Choose MarkdownAI? Section */}
           <div className="mt-16">
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              Why Choose MarkdownAI?
+              Why Choose{" "}
+              <Link href="/" className="text-blue-600 underline hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500">
+                MarkdownAI
+              </Link>
+              ?
             </h2>
 
             <div className="grid md:grid-cols-3 gap-8">
@@ -397,28 +472,97 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Supported Formats */}
+          {/* New Section: They transformed PDF to markdown - Horizontal Scroll with 3 per view */}
           <div className="mt-16">
-            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-              Supported File Formats
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+              They transformed PDF to markdown
             </h2>
+            {/* 这个 div 负责横向滚动 */}
+            <div className="overflow-x-auto pb-4 scrollbar-hide">
+              {/* 这个 div 负责 flex 布局，并且 w-max 让它能够超出视口宽度 */}
+              <div className="flex gap-6 w-max">
+                {recentConversions.map((log) => (
+                  <Card 
+                    key={log.id} 
+                    className="frosted-glass p-6 
+                               w-[280px] /* 确保每个卡片固定宽度，以便3个能在一行显示 */
+                               flex-shrink-0 /* 阻止卡片在flex容器中缩小 */
+                               flex flex-col items-start /* 保持卡片内部内容垂直对齐 */
+                              "
+                  >
+                    <CardContent className="p-0 flex flex-col w-full">
+                      <div className="flex items-center mb-4">
+                        <img
+                          src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${log.avatarSeed}&size=48&radius=50&backgroundColor=b6e3f4,c0aede,d1d4f9,a6e3e9,f9d0c2`}
+                          alt="User Avatar"
+                          className="w-12 h-12 rounded-full mr-4 flex-shrink-0"
+                        />
+                        <div className="flex flex-col">
+                          <p className="text-base font-semibold text-gray-900 flex items-center">
+                            <User className="w-4 h-4 mr-1 text-gray-500" />
+                            User {log.id}
+                          </p>
+                          <p className="text-sm text-gray-500 flex items-center">
+                            <Laptop className="w-4 h-4 mr-1 text-gray-400" />
+                            {log.browser}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-2 flex items-center">
+                        <Calendar className="w-4 h-4 mr-1 text-gray-400" />
+                        {log.date}
+                      </p>
+                      <p className="text-sm text-gray-600 mb-4 flex items-center">
+                        <Globe className="w-4 h-4 mr-1 text-gray-400" />
+                        {log.location}
+                      </p>
+                      <p className="text-gray-800 font-medium leading-relaxed flex-grow">
+                        {log.message}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {SUPPORTED_FILES.map((file) => (
-                <div key={file.ext} className="frosted-glass p-4 rounded-xl text-center">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                    <FileIcon className="w-4 h-4 text-gray-600" />
-                  </div>
-                  <div className="font-medium text-gray-900">{file.ext}</div>
-                  <div className="text-xs text-gray-500">{file.desc}</div>
-                </div>
-              ))}
+          {/* New Section: PDF to Markdown FAQs (for SEO) */}
+          <div className="mt-16">
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+              PDF to Markdown Converter FAQ
+            </h2>
+            <div className="space-y-6">
+              <Card className="frosted-glass p-6">
+                <CardTitle className="text-lg font-semibold mb-2 flex items-center">
+                  <HelpCircle className="w-5 h-5 mr-2 text-blue-600" />
+                  What is Markdown and why convert PDF to it?
+                </CardTitle>
+                <CardDescription>
+                  Markdown is a lightweight markup language for creating formatted text using a plain-text editor. Converting PDF to Markdown allows for easier editing, version control, and compatibility with web platforms and static site generators.
+                </CardDescription>
+              </Card>
+              <Card className="frosted-glass p-6">
+                <CardTitle className="text-lg font-semibold mb-2 flex items-center">
+                  <HelpCircle className="w-5 h-5 mr-2 text-blue-600" />
+                  How accurate is the PDF to Markdown conversion?
+                </CardTitle>
+                <CardDescription>
+                  Our AI-powered converter strives for high accuracy, preserving text, headings, lists, tables, and images. Complex layouts or scanned PDFs may have varying results, but we continuously improve our algorithms.
+                </CardDescription>
+              </Card>
+              <Card className="frosted-glass p-6">
+                <CardTitle className="text-lg font-semibold mb-2 flex items-center">
+                  <HelpCircle className="w-5 h-5 mr-2 text-blue-600" />
+                  Is my data secure during conversion?
+                </CardTitle>
+                <CardDescription>
+                  Yes, your privacy is our priority. Files uploaded are processed securely and are typically deleted from our servers shortly after conversion. We do not store your content long-term.
+                </CardDescription>
+              </Card>
             </div>
           </div>
         </div>
-      </main>
-
-      {/* Footer */}
+      {/* Footer (保持不变) */}
       <footer className="border-t border-gray-200 bg-white/50 apple-blur">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center text-gray-600">
@@ -433,6 +577,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
-   //add a Deploy again too 
